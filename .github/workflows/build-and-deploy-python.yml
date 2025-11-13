@@ -86,65 +86,65 @@ jobs:
           echo "Coverage Tool Source Dir: ${{ inputs.coverageToolSourceDir }}"
           echo "Use Uv: ${{ inputs.useUv }}"
 
-      - name: Setup Environment and determine version
-        id: setup_env
-        uses: ./.github/actions/setup-env
-        with:
-          artifact_name: ${{ github.event.repository.name }}
-          default_revision: "0.1.0"
-          use_git_commit_for_version: "false"
+      # - name: Setup Environment and determine version
+      #   id: setup_env
+      #   uses: ./.github/actions/setup-env
+      #   with:
+      #     artifact_name: ${{ github.event.repository.name }}
+      #     default_revision: "0.1.0"
+      #     use_git_commit_for_version: "false"
 
-      - name: Lint and Test
-        id: lint_test
-        uses: ./.github/actions/lint-and-test
-        with:
-          use_uv: "false"
-          pytest_folder: "tests"
-          pytest_threshold: ${{ steps.setup_env.outputs.pytest_threshold }}
+      # - name: Lint and Test
+      #   id: lint_test
+      #   uses: ./.github/actions/lint-and-test
+      #   with:
+      #     use_uv: "false"
+      #     pytest_folder: "tests"
+      #     pytest_threshold: ${{ steps.setup_env.outputs.pytest_threshold }}
 
-      - name: Publish to PyPI (if enabled)
-        if: ${{ steps.setup_env.outputs.pypi_upload == 'true' && github.ref == 'refs/heads/main' }}
-        uses: ./.github/actions/publish-pypi
-        with:
-          artifact: ${{ steps.setup_env.outputs.artifact }}
-          version: ${{ steps.setup_env.outputs.version }}
-          repo_url: ${{ inputs.pypi_repo || 'https://artifactory.dyn.prd.aws.jpmchase.net/artifactory' }}
-          username: ${{ secrets.PYPI_USERNAME }}
-          password: ${{ secrets.PYPI_PASSWORD }}
+      # - name: Publish to PyPI (if enabled)
+      #   if: ${{ steps.setup_env.outputs.pypi_upload == 'true' && github.ref == 'refs/heads/main' }}
+      #   uses: ./.github/actions/publish-pypi
+      #   with:
+      #     artifact: ${{ steps.setup_env.outputs.artifact }}
+      #     version: ${{ steps.setup_env.outputs.version }}
+      #     repo_url: ${{ inputs.pypi_repo || 'https://artifactory.dyn.prd.aws.jpmchase.net/artifactory' }}
+      #     username: ${{ secrets.PYPI_USERNAME }}
+      #     password: ${{ secrets.PYPI_PASSWORD }}
 
-      - name: Build & Publish Docker (if enabled)
-        if: ${{ steps.setup_env.outputs.has_dockerfile == 'true' }}
-        uses: ./.github/actions/publish-docker
-        with:
-          artifact: ${{ steps.setup_env.outputs.artifact }}
-          version: ${{ steps.setup_env.outputs.version }}
-          registry: ${{ secrets.DOCKER_REGISTRY }}
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+      # - name: Build & Publish Docker (if enabled)
+      #   if: ${{ steps.setup_env.outputs.has_dockerfile == 'true' }}
+      #   uses: ./.github/actions/publish-docker
+      #   with:
+      #     artifact: ${{ steps.setup_env.outputs.artifact }}
+      #     version: ${{ steps.setup_env.outputs.version }}
+      #     registry: ${{ secrets.DOCKER_REGISTRY }}
+      #     username: ${{ secrets.DOCKER_USERNAME }}
+      #     password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Publish Helm charts (if present)
-        if: ${{ steps.setup_env.outputs.has_helm_charts == 'true' }}
-        uses: ./.github/actions/publish-helm
-        with:
-          chart_dir: "helm-chart"
-          version: ${{ steps.setup_env.outputs.version }}
-          helm_repo_url: ${{ secrets.HELM_REPO_URL }}
-          helm_repo_user: ${{ secrets.HELM_REPO_USER }}
-          helm_repo_pass: ${{ secrets.HELM_REPO_PASS }}
+      # - name: Publish Helm charts (if present)
+      #   if: ${{ steps.setup_env.outputs.has_helm_charts == 'true' }}
+      #   uses: ./.github/actions/publish-helm
+      #   with:
+      #     chart_dir: "helm-chart"
+      #     version: ${{ steps.setup_env.outputs.version }}
+      #     helm_repo_url: ${{ secrets.HELM_REPO_URL }}
+      #     helm_repo_user: ${{ secrets.HELM_REPO_USER }}
+      #     helm_repo_pass: ${{ secrets.HELM_REPO_PASS }}
 
-      - name: Run SonarQube scan (PRs targeting main)
-        if: ${{ github.event_name == 'pull_request' }}
-        uses: ./.github/actions/scan-sonar
-        with:
-          project_key: ${{ steps.setup_env.outputs.sonar_project_key }}
-          sonar_token: ${{ secrets.SONARQUBE_TOKEN }}
+      # - name: Run SonarQube scan (PRs targeting main)
+      #   if: ${{ github.event_name == 'pull_request' }}
+      #   uses: ./.github/actions/scan-sonar
+      #   with:
+      #     project_key: ${{ steps.setup_env.outputs.sonar_project_key }}
+      #     sonar_token: ${{ secrets.SONARQUBE_TOKEN }}
 
-      - name: Trigger deployment webhook(s)
-        if: ${{ github.ref == 'refs/heads/main' }}
-        uses: ./.github/actions/jet-events
-        with:
-          artifact: ${{ steps.setup_env.outputs.artifact }}
-          version: ${{ steps.setup_env.outputs.version }}
-          spinnaker_webhook: ${{ secrets.SPINNAKER_WEBHOOK_URL }}
-          harness_token: ${{ secrets.HARNESS_TOKEN }}
+      # - name: Trigger deployment webhook(s)
+      #   if: ${{ github.ref == 'refs/heads/main' }}
+      #   uses: ./.github/actions/jet-events
+      #   with:
+      #     artifact: ${{ steps.setup_env.outputs.artifact }}
+      #     version: ${{ steps.setup_env.outputs.version }}
+      #     spinnaker_webhook: ${{ secrets.SPINNAKER_WEBHOOK_URL }}
+      #     harness_token: ${{ secrets.HARNESS_TOKEN }}
 
