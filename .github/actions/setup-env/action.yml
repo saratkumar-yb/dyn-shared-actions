@@ -1,0 +1,66 @@
+name: Setup Environment and Version
+description: Determine version, detect repo layout and expose outputs used by workflow.
+
+inputs:
+  artifact_name:
+    required: true
+  default_revision:
+    required: false
+    default: "0.1.0"
+  use_git_commit_for_version:
+    required: false
+    default: "false"
+
+outputs:
+  version:
+    description: 'Computed version'
+  artifact:
+    description: 'Artifact name'
+  has_dockerfile:
+    description: 'true/false'
+  has_helm_charts:
+    description: 'true/false'
+  pypi_upload:
+    description: 'true/false'
+  pytest_threshold:
+    description: 'coverage threshold'
+  sonar_project_key:
+    description: 'sonar project key'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout (action requirement)
+      uses: actions/checkout@v4
+
+    - name: Compute version and detect files
+      id: compute
+      shell: bash
+      run: |
+        set -euo pipefail
+        ARTIFACT="${{ inputs.artifact_name }}"
+        DEFAULT_REV="${{ inputs.default_revision }}"
+        USE_GIT_COMMIT="${{ inputs.use_git_commit_for_version }}"
+
+        # revision file if exists
+        if [ -f "__version__" ]; then
+          REVISION="$(cat __version__)"
+        else
+          REVISION="${DEFAULT_REV}"
+        fi
+
+        if [ "${USE_GIT_COMMIT}" = "true" ]; then
+          COMMIT="$(git rev-parse --short HEAD)"
+          VERSION="${REVISION}-${COMMIT}"
+        else
+          VERSION="${REVISION}"
+        fi
+
+        echo "artifact=${ARTIFACT}" >> $GITHUB_OUTPUT
+        echo "version=${VERSION}" >> $GITHUB_OUTPUT
+        echo "has_dockerfile=$( [ -f Dockerfile ] && echo true || echo false )" >> $GITHUB_OUTPUT
+        echo "has_helm_charts=$( [ -d helm-chart ] && ls helm-chart | wc -l | awk '{print ($1>0)?"true":"false"}' || echo false )" >> $GITHUB_OUTPUT
+        # defaults; these can be overridden by repo input or secrets
+        echo "pypi_upload=false" >> $GITHUB_OUTPUT
+        echo "pytest_threshold=70" >> $GITHUB_OUTPUT
+        echo "sonar_project_key=${{ github.repository_owner }}-${{ github.event.repository.name }}" >> $GITHUB_OUTPUT

@@ -1,0 +1,17 @@
+name: Git Tag
+description: Tag current commit and push tag
+
+inputs:
+  version:
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Tag and push
+      shell: bash
+      run: |
+        git config user.name "github-actions"
+        git config user.email "actions@github.com"
+        git tag "${{ inputs.version }}" || true
+        git push origin "${{ inputs.version }}" || true

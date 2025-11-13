@@ -1,0 +1,15 @@
+name: OSS & Security Scan (SSAP/SIC)
+description: Wraps the organization's OSS/security scan commands.
+
+inputs:
+  project_seal_id:
+    required: false
+
+runs:
+  using: "composite"
+  steps:
+    - name: Run organizational SSAP/SIC scan (placeholder)
+      shell: bash
+      run: |
+        echo "SSAP/SIC scan entrypoint - implement organization's scanning script"
+        echo "project_seal_id=${{ inputs.project_seal_id }}"

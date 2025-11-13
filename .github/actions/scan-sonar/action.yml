@@ -1,0 +1,27 @@
+name: SonarQube Scan
+description: Run SonarQube scanner for the repo (requires SONAR scanner available).
+
+inputs:
+  project_key:
+    required: true
+  sonar_token:
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install scanner (best-effort)
+      run: |
+        if ! command -v sonar-scanner >/dev/null 2>&1; then
+          mkdir -p /tmp/sonar && cd /tmp/sonar
+          curl -sSLO "https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.8.0.2856-linux.zip" || true
+          unzip -o sonar-scanner-cli-*.zip || true
+          echo "export PATH=$(pwd)/sonar-scanner-*/bin:$PATH" >> $GITHUB_ENV || true
+        fi
+
+    - name: Run scanner
+      shell: bash
+      env:
+        SONAR_TOKEN: ${{ inputs.sonar_token }}
+      run: |
+        sonar-scanner -Dsonar.projectKey="${{ inputs.project_key }}" -Dsonar.login="${SONAR_TOKEN}" || true

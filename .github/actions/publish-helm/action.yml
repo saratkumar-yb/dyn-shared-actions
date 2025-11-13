@@ -1,0 +1,34 @@
+name: Publish Helm Charts
+description: Package and push Helm charts from helm-chart/* to configured chart repo.
+
+inputs:
+  chart_dir:
+    required: true
+  version:
+    required: true
+  helm_repo_url:
+    required: true
+  helm_repo_user:
+    required: true
+  helm_repo_pass:
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Helm
+      run: |
+        curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash || true
+
+    - name: Package and push charts
+      shell: bash
+      run: |
+        for d in $(ls -1 "${{ inputs.chart_dir }}" 2>/dev/null); do
+          if [ -d "${{ inputs.chart_dir }}/$d" ]; then
+            helm package "${{ inputs.chart_dir }}/$d" --version "${{ inputs.version }}" || true
+            CHART=$(ls -1 *.tgz | head -n1)
+            if [ -n "$CHART" ]; then
+              curl -u "${{ inputs.helm_repo_user }}:${{ inputs.helm_repo_pass }}" -T "$CHART" "${{ inputs.helm_repo_url }}/$(basename $CHART)"
+            fi
+          fi
+        done

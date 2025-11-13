@@ -1,0 +1,34 @@
+name: Publish Docker Image
+description: Build and push Docker image to registry.
+
+inputs:
+  artifact:
+    required: true
+  version:
+    required: true
+  registry:
+    required: true
+  username:
+    required: true
+  password:
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Login to registry
+      shell: bash
+      run: |
+        echo "${{ inputs.password }}" | docker login "${{ inputs.registry }}" -u "${{ inputs.username }}" --password-stdin
+
+    - name: Build image
+      shell: bash
+      run: |
+        IMAGE="${{ inputs.registry }}/${{ inputs.artifact }}:${{ inputs.version }}"
+        docker build -t "$IMAGE" .
+
+    - name: Push image
+      shell: bash
+      run: |
+        IMAGE="${{ inputs.registry }}/${{ inputs.artifact }}:${{ inputs.version }}"
+        docker push "$IMAGE"

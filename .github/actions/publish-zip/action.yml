@@ -1,0 +1,39 @@
+name: Publish ZIP Artifact
+description: Zip selected files and upload to Artifactory (via simple curl).
+
+inputs:
+  artifact:
+    required: true
+  version:
+    required: true
+  artifactory_url:
+    required: true
+  artifactory_repo_path:
+    required: true
+  username:
+    required: true
+  password:
+    required: true
+  includes:
+    required: false
+    default: "**/*.*"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Create zip
+      shell: bash
+      run: |
+        ZIPFILE="${{ inputs.artifact }}-${{ inputs.version }}.zip"
+        # create zip of repository (simple)
+        zip -r "$ZIPFILE" . -x '.git/*' || true
+        echo "zipfile=$ZIPFILE" >> $GITHUB_OUTPUT
+
+    - name: Upload to Artifactory
+      shell: bash
+      env:
+        USER: ${{ inputs.username }}
+        PASS: ${{ inputs.password }}
+      run: |
+        ZIPFILE="${{ inputs.artifact }}-${{ inputs.version }}.zip"
+        curl -u "$USER:$PASS" -T "$ZIPFILE" "${{ inputs.artifactory_url }}/${{ inputs.artifactory_repo_path }}/$ZIPFILE"
