@@ -1,10 +1,66 @@
 name: Build and Deploy Python
 
 on:
-  push:
-    branches: [ "main", "master" ]
-  pull_request:
-    branches: [ "main", "master" ]
+  workflow_call:
+    inputs:
+      kubernetesLabel:
+        required: true
+        type: string
+      kubernetesYaml:
+        required: true
+        type: string
+      gitProjectKey:
+        required: true
+        type: string
+      gitRepositoryName:
+        required: true
+        type: string
+      emailOnFailure:
+        required: true
+        type: string
+      projectSealId:
+        required: true
+        type: string
+      isRunSonarQube:
+        required: false
+        type: boolean
+        default: false
+      isRunSsapScan:
+        required: false
+        type: boolean
+        default: false
+      isRunSiCScan:
+        required: false
+        type: boolean
+        default: false
+      isRunImageScan:
+        required: false
+        type: boolean
+        default: false
+      isZipArchive:
+        required: false
+        type: boolean
+        default: false
+      revision:
+        required: false
+        type: string
+        default: "latest"
+      pytestFolder:
+        required: false
+        type: string
+        default: "tests"
+      useCoverageTool:
+        required: false
+        type: boolean
+        default: false
+      coverageToolSourceDir:
+        required: false
+        type: string
+        default: ""
+      useUv:
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   build-deploy:
@@ -12,10 +68,23 @@ jobs:
     defaults:
       run:
         shell: bash
-
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Print parameters
+        run: |
+          echo "Kubernetes Label: ${{ inputs.kubernetesLabel }}"
+          echo "Kubernetes YAML: ${{ inputs.kubernetesYaml }}"
+          echo "Git Project Key: ${{ inputs.gitProjectKey }}"
+          echo "Git Repository Name: ${{ inputs.gitRepositoryName }}"
+          echo "Email On Failure: ${{ inputs.emailOnFailure }}"
+          echo "Project Seal ID: ${{ inputs.projectSealId }}"
+          echo "Revision: ${{ inputs.revision }}"
+          echo "Pytest Folder: ${{ inputs.pytestFolder }}"
+          echo "Use Coverage Tool: ${{ inputs.useCoverageTool }}"
+          echo "Coverage Tool Source Dir: ${{ inputs.coverageToolSourceDir }}"
+          echo "Use Uv: ${{ inputs.useUv }}"
 
       - name: Setup Environment and determine version
         id: setup_env
